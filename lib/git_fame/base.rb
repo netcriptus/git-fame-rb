@@ -20,7 +20,7 @@ require "git_fame/errors"
 require "git_fame/commit_range"
 
 module GitFame
-  SORT = ["name", "commits", "loc", "files"]
+  SORT = ["name", "email", "commits", "loc", "files"]
   CMD_TIMEOUT = 10
 
   class Base
@@ -81,6 +81,7 @@ module GitFame
       # Format: [ [ :method_on_author, "custom column name" ] ]
       @visible_fields = [
         :name,
+        :email,
         :loc,
         :commits,
         :files,
@@ -198,6 +199,7 @@ module GitFame
 
             # Get author by name and increase the number of loc by 1
             author.inc(:loc, get(row, :num_lines))
+            author[:email] = email
 
             # Store the files and authors together
             associate_file_with_author(author, file)
@@ -205,18 +207,19 @@ module GitFame
         end
       end
 
-      # Get repository summery and update each author accordingly
+      # Get repository summary and update each author accordingly
       execute("git #{git_directory_params} shortlog #{encoding_opt} #{default_params} -se #{commit_range.to_s}") do |result|
         result.to_s.split("\n").map do |line|
           _, commits, name, email = line.match(/(\d+)\s+(.+)\s+<(.+?)>/).to_a
           author = author_by_email(email)
 
           author.name = name
+          author.email = email
 
           author.update({
             raw_commits: commits.to_i,
             raw_files: files_from_author(author).count,
-            files_list: files_from_author(author)
+            files_list: files_from_author(author),
           })
         end
       end
