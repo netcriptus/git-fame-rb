@@ -199,7 +199,6 @@ module GitFame
 
             # Get author by name and increase the number of loc by 1
             author.inc(:loc, get(row, :num_lines))
-            author[:email] = email
 
             # Store the files and authors together
             associate_file_with_author(author, file)
@@ -219,7 +218,7 @@ module GitFame
           author.update({
             raw_commits: commits.to_i,
             raw_files: files_from_author(author).count,
-            files_list: files_from_author(author),
+            files_list: files_from_author(author)
           })
         end
       end
